@@ -1,11 +1,11 @@
-import SimpleInput from './components/SimpleInput';
+import EventForm from './components/EventForm';
 
 function App() {
   return (
     <div className="app">
-      <SimpleInput />
+      <EventForm />
     </div>
-  );
+  )
 }
 
 export default App;
