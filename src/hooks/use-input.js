@@ -28,5 +28,7 @@ const useInput = (validateValue) => {
         valueChangeHandler,
         inputBlurHandler,
         reset
-    };
+    }
 }
+
+export default useInput

@@ -1,50 +1,56 @@
-import { useState } from 'react'
+import useInput from '../hooks/use-input' 
 
+const SimpleInput = (props) => { 
 
-const SimpleInput = (props) => {  
-  const [enteredName, setEnteredName] = useState('')
-  const [enteredNameTouched, setEnteredNameTouched] = useState(false)
+  const { 
+    value: enteredName, 
+    isValid: enteredNameIsValid,
+    hasError: nameInputHasError, 
+    valueChangeHandler: nameChangeHandler, 
+    inputBlurHandler: nameBlurHandler,
+    reset: resetNameInput 
+  } = useInput(value => value.trim() !== '') // function that is passed in as an argument to useInput
   
-  const enteredNameIsValid = enteredName.trim() !== ''
-  const nameInputIsInvalid = !enteredNameIsValid && enteredNameTouched
-
-  
+  const {
+    value: enteredEmail,
+    isValid: enteredEmailIsValid,
+    hasError: emailInputHasError,
+    valueChangeHandler: emailChangeHandler,
+    inputBlurHandler: emailBlurHandler,
+    reset: resetEmailInput
+  } = useInput(value => value.includes('@'))
 
   let formIsValid = false
-  if (enteredNameIsValid ) {
+
+  if (enteredNameIsValid && enteredEmailIsValid) {
     formIsValid = true
   }
   
-  const nameInputChangeHandler = event => {
-    setEnteredName(event.target.value)
-  }
-
-  const nameInputBlurHandler = event => {
-    setEnteredNameTouched(true)
-    
-  }
 
   const formSubmissionHandler = event => {
     event.preventDefault()
 
-    setEnteredNameTouched(true)
-
     if(!enteredNameIsValid) {      
       return
     }
-
-    
-
     console.log(enteredName)
-
-    //(github co-pilot): useState instead of useRef to reset the input field because it's not manipulating the DOM directly when clearing the input field
-    setEnteredName('') // clear the input field
-    setEnteredNameTouched(false) // reset the touched state
+    resetNameInput() 
+    resetEmailInput()
     
-    
+    if(!enteredEmailIsValid) {      
+      return
+    }
+    console.log(enteredEmail)
+    resetEmailInput()
   }
     
-    const nameInputClasses = nameInputIsInvalid ? 'form-control invalid' : 'form-control'
+    const nameInputClasses = nameInputHasError
+    ? 'form-control invalid' 
+    : 'form-control'
+
+    const emailInputClasses = emailInputHasError
+    ? 'form-control invalid' 
+    : 'form-control'
     
     return (
       <form onSubmit={formSubmissionHandler}>
@@ -54,10 +60,23 @@ const SimpleInput = (props) => {
             value={enteredName}            
             type='text' 
             id='name' 
-            onChange={nameInputChangeHandler}
-            onBlur={nameInputBlurHandler} 
+            onChange={nameChangeHandler}
+            onBlur={nameBlurHandler} 
           />
-          {nameInputIsInvalid && <p style={{color: 'red'}}>Skriv ditt namn!</p>}
+          {nameInputHasError && <p style={{color: 'red'}}>Fyll i namn!</p>}
+          </div>
+          <div className={emailInputClasses}>
+          <label htmlFor='name'>Epostadress</label>
+          <input
+            value={enteredEmail}
+            type='text'
+            id='email'
+            onChange={emailChangeHandler}
+            onBlur={emailBlurHandler}
+          />
+          {emailInputHasError && <p style={{color: 'red'}}>Skriv korrekt epostadress!</p>}
+
+
         </div>
         <div className="form-actions">
           <button disabled={!formIsValid}>Submit</button>
