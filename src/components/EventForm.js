@@ -1,6 +1,16 @@
+import { useState, useEffect } from 'react'
 import useInput from '../hooks/use-input' // custom hook for input validation
+import { GetApiData, PostApiData } from '../fetchApi/awaitFetch'
 
-const EventForm = (props) => {
+const isNotEmpty = value => value.trim() !== '' // function that is passed in as an argument to useInput
+const isEmail = value => value.includes('@') // function that is passed in as an argument to useInput
+
+const EventForm = ({onSubmitting, eventId}) => {
+
+    const [isAttendingOnSite, setIsAttendingOnSite] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState(null)
+    
 
     //destructuring a custom hook for the input validations
     const { 
@@ -10,7 +20,7 @@ const EventForm = (props) => {
         valueChangeHandler: nameChangeHandler, 
         inputBlurHandler: nameBlurHandler,
         reset: resetNameInput 
-      } = useInput(value => value.trim() !== '') // function that is passed in as an argument to useInput
+      } = useInput(isNotEmpty) // function is passed in as an argument to useInput
     const {
         value: enteredCompany,
         isValid: enteredCompanyIsValid,
@@ -18,7 +28,7 @@ const EventForm = (props) => {
         valueChangeHandler: companyChangeHandler,
         inputBlurHandler: companyBlurHandler,
         reset: resetCompanyInput
-      } = useInput(value => value.trim() !== '')
+      } = useInput(isNotEmpty)
     const {
         value: enteredEmail,
         isValid: enteredEmailIsValid,
@@ -26,7 +36,7 @@ const EventForm = (props) => {
         valueChangeHandler: emailChangeHandler,
         inputBlurHandler: emailBlurHandler,
         reset: resetEmailInput
-      } = useInput(value => value.includes('@'))
+      } = useInput(isEmail)
     
     let formIsValid = false
 
@@ -36,23 +46,41 @@ const EventForm = (props) => {
 
     const formSubmissionHandler = event => {
         event.preventDefault()
-        if(!enteredNameIsValid) {
+        if (!formIsValid) {
             return
         }
-        console.log(enteredName)
-        resetNameInput()        
-        if(!enteredCompanyIsValid) {
-            return
-        }
-        console.log(enteredCompany)
-        resetCompanyInput()
+
+        setIsLoading(true)
+        setError(null)
+
+        const data ={            
+            "name": enteredName,
+            "company": enteredCompany,
+            "cellPhoneNumber": "0709393338",
+            "emailAddress": enteredEmail,
+            "attendRemote": !isAttendingOnSite,
+            "ptsEventId": eventId            
+        }       
+
+        onSubmitting('Participant', data)
+
+        //const response = GetApiData('http://swapi.dev/api/films')
         
-        if(!enteredEmailIsValid) {
-            return
-        }
-        console.log(enteredEmail)
+        //console.log(response)
+
+        console.log('Submitted!')
+        console.log(enteredName, enteredCompany, enteredEmail)
+        console.log('Attending on site: ', isAttendingOnSite ? 'Yes' : 'No')
+        
+        resetNameInput()
+        resetCompanyInput()        
         resetEmailInput()
+
+        setIsLoading(false)
     }
+
+    const checkHandler = () => setIsAttendingOnSite(!isAttendingOnSite)
+    
     const nameInputClasses = nameInputHasError
     ? 'form-control invalid'
     : 'form-control'
@@ -67,6 +95,10 @@ const EventForm = (props) => {
     
     return (
       <form onSubmit={formSubmissionHandler}>
+        {isLoading && <p>Loading...</p>}
+        {!isLoading && error && <p>{error}</p>}
+
+        
         <div className='control-group'>
 
             <div className={nameInputClasses}>
@@ -104,7 +136,13 @@ const EventForm = (props) => {
                 {emailInputHasError && <p style={{color: 'red'}}>Fyll i epost!</p>}
             </div>
         </div>
-        <input type='checkbox' id='onsite' /><label htmlFor='onsite'>Deltar på plats</label>
+        <input 
+            type='checkbox' 
+            id='onsite' 
+            checked={isAttendingOnSite} 
+            onChange={checkHandler}
+        />
+        <label htmlFor='onsite'>Deltar på plats</label>
          
        
         <div className='form-actions'>
