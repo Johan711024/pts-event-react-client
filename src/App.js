@@ -4,21 +4,20 @@ import EventForm from './components/EventForm';
 
 function App() {
   const [isSubmitting, setIsSubmitting] = useState(true)
-  const [didSubmit, setDidSubmit] = useState(false)
-
-  const [submitSeed, setSubmitSeed] = useState(true)
+  //const [didSubmit, setDidSubmit] = useState(false)
+  const [isSubmittingSeed, setIsSubmittingSeed] = useState(true)
   const [eventIdSeed, setEventIdSeed] = useState(0)
   
   const url = 'https://ptseventsapp.azurewebsites.net/api'
   
-  //Seed data
+  //Seed data for testing
   const seedData = {
-    "name": "5G mayhem",
+    "name": "5G Conference 2024",
     "isComplete": false,      
   }
   
   const submitHandler = async (apiController, submitData) => {
-    setSubmitSeed(false)
+    setIsSubmittingSeed(false)
     setIsSubmitting(true);
     const response = await fetch(`${url}/${apiController}`, {
       method: 'POST',
@@ -29,20 +28,21 @@ function App() {
         'Content-Type': 'application/json'
       }
     });
+    
     setIsSubmitting(false)
-    setDidSubmit(true)
+    //setDidSubmit(true)
     const data = await response.json()
     setEventIdSeed(data.id)
     console.log(data)
   }
 
-  submitSeed && submitHandler('PtsEvent', seedData)
+  isSubmittingSeed && submitHandler('PtsEvent', seedData)
 
   return (
     <>
-    {isSubmitting && <p>Sending request...</p>}
+    {isSubmittingSeed && <p style={{backgroundColor: 'grey'}}>Starting in-memory db on Azure and seed test data from client to server...</p>}
     <div className="app">
-      <EventForm onSubmitting={submitHandler} eventId={eventIdSeed} />
+      <EventForm onSubmitting={submitHandler} isSubmitting={isSubmitting} eventId={eventIdSeed} />
     </div>
     </>
   )

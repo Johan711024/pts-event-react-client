@@ -1,17 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import useInput from '../hooks/use-input' // custom hook for input validation
-import { GetApiData, PostApiData } from '../fetchApi/awaitFetch'
 
 const isNotEmpty = value => value.trim() !== '' // function that is passed in as an argument to useInput
+const isCellPhone = value => value.match(/^-?\d+$/) // function that is passed in as an argument to useInput
 const isEmail = value => value.includes('@') // function that is passed in as an argument to useInput
 
-const EventForm = ({onSubmitting, eventId}) => {
+const EventForm = ({onSubmitting, isSubmitting, eventId}) => {
 
+    const [isPosted, setIsPosted] = useState(false)
     const [isAttendingOnSite, setIsAttendingOnSite] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
-    const [error, setError] = useState(null)
     
-
     //destructuring a custom hook for the input validations
     const { 
         value: enteredName, 
@@ -30,6 +28,14 @@ const EventForm = ({onSubmitting, eventId}) => {
         reset: resetCompanyInput
       } = useInput(isNotEmpty)
     const {
+        value: enteredCellPhone,
+        isValid: enteredCellPhoneIsValid,
+        hasError: cellPhoneInputHasError,
+        valueChangeHandler: cellPhoneChangeHandler,
+        inputBlurHandler: cellPhoneBlurHandler,
+        reset: resetCellPhoneInput
+      } = useInput(isCellPhone)
+    const {
         value: enteredEmail,
         isValid: enteredEmailIsValid,
         hasError: emailInputHasError,
@@ -40,7 +46,7 @@ const EventForm = ({onSubmitting, eventId}) => {
     
     let formIsValid = false
 
-    if (enteredNameIsValid && enteredCompanyIsValid && enteredEmailIsValid) {
+    if (enteredNameIsValid && enteredCompanyIsValid && enteredCellPhoneIsValid &&  enteredEmailIsValid) {
         formIsValid = true
     }
 
@@ -50,33 +56,29 @@ const EventForm = ({onSubmitting, eventId}) => {
             return
         }
 
-        setIsLoading(true)
-        setError(null)
-
         const data ={            
             "name": enteredName,
             "company": enteredCompany,
-            "cellPhoneNumber": "0709393338",
+            "cellPhoneNumber": enteredCellPhone,
             "emailAddress": enteredEmail,
             "attendRemote": !isAttendingOnSite,
             "ptsEventId": eventId            
         }       
 
         onSubmitting('Participant', data)
-
-        //const response = GetApiData('http://swapi.dev/api/films')
+        setIsPosted(true)
         
-        //console.log(response)
 
         console.log('Submitted!')
-        console.log(enteredName, enteredCompany, enteredEmail)
+        console.log(enteredName, enteredCompany, enteredCellPhone, enteredEmail)
         console.log('Attending on site: ', isAttendingOnSite ? 'Yes' : 'No')
         
         resetNameInput()
-        resetCompanyInput()        
+        resetCompanyInput()   
+        resetCellPhoneInput()     
         resetEmailInput()
-
-        setIsLoading(false)
+        
+        
     }
 
     const checkHandler = () => setIsAttendingOnSite(!isAttendingOnSite)
@@ -90,13 +92,19 @@ const EventForm = ({onSubmitting, eventId}) => {
     const emailInputClasses = emailInputHasError
     ? 'form-control invalid'
     : 'form-control'
+    const cellPhoneInputClasses = cellPhoneInputHasError
+    ? 'form-control invalid'
+    : 'form-control'
 
 
     
     return (
       <form onSubmit={formSubmissionHandler}>
-        {isLoading && <p>Loading...</p>}
-        {!isLoading && error && <p>{error}</p>}
+        {isSubmitting && <p>Loading...</p>}  
+
+        {isPosted && <p style={{color: 'green'}}>Tack för din anmälan!</p>}
+
+        {!isPosted && <>
 
         
         <div className='control-group'>
@@ -123,7 +131,18 @@ const EventForm = ({onSubmitting, eventId}) => {
                     onBlur={companyBlurHandler}
                 />
                 {companyInputHasError && <p style={{color: 'red'}}>Fyll i företag!</p>}
-            </div>        
+            </div> 
+            <div className={cellPhoneInputClasses}>
+                <label htmlFor='email'>Mobilnummer</label>
+                <input 
+                    id='email'
+                    value={enteredCellPhone}
+                    type='text'
+                    onChange={cellPhoneChangeHandler}
+                    onBlur={cellPhoneBlurHandler}
+                />
+                {cellPhoneInputHasError && <p style={{color: 'red'}}>Fyll i mobilnummer. Endast siffror.</p>}
+            </div>       
             <div className={emailInputClasses}>
                 <label htmlFor='email'>Epost</label>
                 <input 
@@ -148,6 +167,7 @@ const EventForm = ({onSubmitting, eventId}) => {
         <div className='form-actions'>
             <button disabled={!formIsValid}>Submit</button>
         </div>
+        </>}
       </form>
     )
   }
