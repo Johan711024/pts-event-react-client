@@ -165,7 +165,7 @@ const EventForm = ({onSubmitting, isSubmitting, eventId}) => {
          
        
         <div className='form-actions'>
-            <button disabled={!formIsValid}>Submit</button>
+            <button disabled={!formIsValid} className="btn btn-primary">Submit</button>
         </div>
         </>}
       </form>
